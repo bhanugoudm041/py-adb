@@ -45,8 +45,8 @@ def list_devices():
 #Listing devices
 if options.list_dev:
 	list_devices()
-	print("Emulator-1: ", devices[0])
-	print("Emulator-2: ", devices[1])
+	for device in devices:
+		print("Emulator: ", device)
 
 #Set a device
 if options.device == None:
