@@ -1,6 +1,6 @@
 # py-adb
 This tool allows you to do lot of things
-
+```
 └─$ python3 py-adb.py -h</br>
 Usage: py-adb.py [options]</br>
 </br>
@@ -26,4 +26,5 @@ Options:</br>
   -e, --extract         Extract base.apk & AndroidManifest.xml file with</br>
                         Package name -s</br>
 </br>
+```
 ![image](https://github.com/user-attachments/assets/54464bb5-fda1-41fe-9000-42807d11c14f)
