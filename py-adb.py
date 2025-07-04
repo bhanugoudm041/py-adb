@@ -6,9 +6,9 @@ from lxml import etree
 
 #options
 parser = OptionParser()
-parser.add_option("-H", "--host", dest="host", help="Host of adb", default="127.0.0.1")
-parser.add_option("-P", "--port", dest="port", help="port of adb", default=5037)
-parser.add_option("-d", "--device", dest="device",help="Specify emulator to connect")
+parser.add_option("-H", "--host", dest="host", help="Host of adb, default: 127.0.0.1", default="127.0.0.1")
+parser.add_option("-P", "--port", dest="port", help="port of adb, default: 5037", default=5037)
+parser.add_option("-d", "--device", dest="device",help="Specify emulator to connect, default: 1st Emulator")
 parser.add_option("-l", "--list", dest="list_dev", action="store_true", help="List adb devices")
 parser.add_option("-L", "--list-packages", dest="list_packages", action="store_true", help="List installed packages")
 
