@@ -1,0 +1,3 @@
+androguard
+optparse-pretty
+pure-python-adb
