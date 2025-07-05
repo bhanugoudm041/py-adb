@@ -1,5 +1,14 @@
-# py-adb
-This tool allows you to do lot of things
+# vulnscan-adb
+This tool allows you to do lot of things related to android application pentesting. It can also detect misconfiguration in AndroidManifest.xml file
+
+## Installation
+```
+git clone git clone https://github.com/bhanugoudm041/py-adb.git
+cd py-adb
+pip3 install -r requirement.txt
+python3 vulnscan-adb.py -h
+```
+#### Simple Options
 ```
 └─$ python3 vulnscan-adb.py -h
 Usage: vulnscan-adb.py [options]
