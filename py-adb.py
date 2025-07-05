@@ -32,113 +32,113 @@ parser.add_option("-e", "--extract", dest="extract", action="store_true", help="
 
 (options, args) = parser.parse_args()
 
+try:
+	#initialize connection
+	client = adb(host=options.host, port=options.port)
 
-#initialize connection
-client = adb(host=options.host, port=options.port)
+	#Getting devices
+	devices = []
+	def list_devices():
+		for device in client.devices():
+			devices.append(device.get_serial_no())
 
-#Getting devices
-devices = []
-def list_devices():
-	for device in client.devices():
-		devices.append(device.get_serial_no())
+	#Listing devices
+	if options.list_dev:
+		list_devices()
+		for device in devices:
+			print("Emulator: ", device)
 
-#Listing devices
-if options.list_dev:
-	list_devices()
-	for device in devices:
-		print("Emulator: ", device)
-
-#Set a device
-if options.device == None:
-	list_devices()
-	device = client.device(devices[0])
-else:
-	device = client.device(options.device)
-
-#List packages
-if options.list_packages:
-	print(device.shell("pm list packages"))
-
-
-#Check installed APK
-if options.is_install and options.source != None:
-	if device.is_installed(options.source):
-		print("Package:", options.source, "is already installed")
+	#Set a device
+	if options.device == None:
+		list_devices()
+		device = client.device(devices[0])
 	else:
-		print("Package:", options.source, "is not installed")
-elif options.is_install and options.source == None:
-	print("Please provide a package name with -s source option, example: com.abc.myapp")
+		device = client.device(options.device)
+
+	#List packages
+	if options.list_packages:
+		print(device.shell("pm list packages"))
 
 
-#Installing APK
-if options.install and options.path != None:
-	try:
-		if device.install(options.path):
-			print("App installed succesfully")
-	except FileNotFoundError:
-		print("Please enter a valid path to APK")
-elif options.install and options.path == None:
-	print("Please use this option with path -p")
-	
-
-#Uninstalling APK
-if options.uninstall and options.source != None:
-	if device.uninstall(options.source):
-		print("Package:", options.source, "is uninstalled successfully")
-	else:
-		print("Package:", options.source, "is not installed or failed to uninstall")
-
-elif options.uninstall and options.source == None:
-	print("Please provide a package name with -s source option, example: com.abc.myapp")
-
-
-#push a package
-if options.upload and options.usource != None and options.dest != None:
-	try:
-		if device.push(options.usource, options.dest) == None:
-			print("File uploaded successfully")
+	#Check installed APK
+	if options.is_install and options.source != None:
+		if device.is_installed(options.source):
+			print("Package:", options.source, "is already installed")
 		else:
+			print("Package:", options.source, "is not installed")
+	elif options.is_install and options.source == None:
+		print("Please provide a package name with -s source option, example: com.abc.myapp")
+
+
+	#Installing APK
+	if options.install and options.path != None:
+		try:
+			if device.install(options.path):
+				print("App installed succesfully")
+		except FileNotFoundError:
+			print("Please enter a valid path to APK")
+	elif options.install and options.path == None:
+		print("Please use this option with path -p")
+		
+
+	#Uninstalling APK
+	if options.uninstall and options.source != None:
+		if device.uninstall(options.source):
+			print("Package:", options.source, "is uninstalled successfully")
+		else:
+			print("Package:", options.source, "is not installed or failed to uninstall")
+
+	elif options.uninstall and options.source == None:
+		print("Please provide a package name with -s source option, example: com.abc.myapp")
+
+
+	#push a package
+	if options.upload and options.usource != None and options.dest != None:
+		try:
+			if device.push(options.usource, options.dest) == None:
+				print("File uploaded successfully")
+			else:
+				print("Upload failed & Please provide full path in destination example: /sdcard/Download/abc.text")
+		except RuntimeError:
 			print("Upload failed & Please provide full path in destination example: /sdcard/Download/abc.text")
-	except RuntimeError:
-		print("Upload failed & Please provide full path in destination example: /sdcard/Download/abc.text")
 
 
-elif options.upload and (options.usource == None or options.dest == None):
-	print("Please provide source(upload from) -S and destination(upload to) -E")
+	elif options.upload and (options.usource == None or options.dest == None):
+		print("Please provide source(upload from) -S and destination(upload to) -E")
 
 
-#pull a package
-if options.download and options.usource != None and options.dest != None:
-	try:
-		if device.pull(options.usource, options.dest) == None:
-			print("File Downloaded successfully")
-		else:
+	#pull a package
+	if options.download and options.usource != None and options.dest != None:
+		try:
+			if device.pull(options.usource, options.dest) == None:
+				print("File Downloaded successfully")
+			else:
+				print("Download failed")
+		except RuntimeError:
 			print("Download failed")
-	except RuntimeError:
-		print("Download failed")
 
 
-elif options.download and (options.usource == None or options.dest == None):
-	print("Please provide source(download from) -S and destination(Download to) -E")
+	elif options.download and (options.usource == None or options.dest == None):
+		print("Please provide source(download from) -S and destination(Download to) -E")
 
 
 
-#extract Android manifest file & base apk
-if options.extract and options.source:
-	path = device.shell("pm path " + options.source)
-	if not path.startswith("package:"):
-		print("Package", options.source, "not found")
-	else:
-		apk_path = path.replace("package:", "").strip()
-		device.pull(apk_path, "base-"+options.source+".apk")
-		print("Package downloaded successfully Name:", "base-"+options.source+".apk")
-		apk, d, dx = AnalyzeAPK("base-"+options.source+".apk")
-		manifest = apk.get_android_manifest_xml()
-		manifest_dom = manifest_str = etree.tostring(manifest, pretty_print=True, encoding='unicode')
-		with open(options.source+"-AndroidManifest.xml", "w") as file:
-			file.write(manifest_dom)
-			file.close()
-		print("Written to file:", options.source+"-AndroidManifest.xml")
-	
-
-
+	#extract Android manifest file & base apk
+	if options.extract and options.source:
+		path = device.shell("pm path " + options.source)
+		if not path.startswith("package:"):
+			print("Package", options.source, "not found")
+		else:
+			apk_path = path.replace("package:", "").strip()
+			device.pull(apk_path, "base-"+options.source+".apk")
+			print("Package downloaded successfully Name:", "base-"+options.source+".apk")
+			apk, d, dx = AnalyzeAPK("base-"+options.source+".apk")
+			manifest = apk.get_android_manifest_xml()
+			manifest_dom = manifest_str = etree.tostring(manifest, pretty_print=True, encoding='unicode')
+			with open(options.source+"-AndroidManifest.xml", "w") as file:
+				file.write(manifest_dom)
+				file.close()
+			print("Written to file:", options.source+"-AndroidManifest.xml")
+		
+except IndexError:
+	print("No ADB devices found")
