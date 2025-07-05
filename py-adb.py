@@ -32,8 +32,7 @@ parser.add_option("-E", "--des", dest="dest", help="Destination file path to upl
 
 #Extract base apk & AndroidManifest.xml file
 parser.add_option("-e", "--extract", dest="extract", action="store_true", help="Extract base.apk & AndroidManifest.xml file with Package name -s")
-
-
+parser.add_option("-x", "--extract-all", dest="extract_all", action="store_true", help="Extract all split apk files with Package name -s")
 
 #Run adb shell commands
 parser.add_option("-c", "--cmd", dest="command", help="ADB command to run")
@@ -134,15 +133,21 @@ try:
 	elif options.download and (options.usource == None or options.dest == None):
 		print("Please provide source(download from) -S and destination(Download to) -E")
 
-
 	paths = []
-	#extract Android manifest file & base apk
-	if options.extract and options.source:
-		paths = (device.shell("pm path " + options.source)).splitlines()
-		if not paths[0].startswith("package:"):
-			print("Package", options.source, "not found")
+	def path_puller():
+		pack_paths = (device.shell("pm path " + options.source)).splitlines()
+		if pack_paths:
+			for path in pack_paths:
+				paths.append(path.replace("package:", "").strip())
 		else:
-			apk_path = paths[0].replace("package:", "").strip()
+			print("Package", options.source, "not found")
+
+
+	#extract Android manifest file & base apk
+	if options.extract and options.source != None:
+		path_puller()
+		try:
+			apk_path = paths[0]
 			print("Base apk path found:", apk_path)
 			device.pull(apk_path, "base-"+options.source+".apk")
 			print("Base APK downloaded successfully, Name:", "base-"+options.source+".apk")
@@ -153,8 +158,23 @@ try:
 				file.write(manifest_dom)
 				file.close()
 			print("AndroidManifest Written to file:", options.source+"-AndroidManifest.xml")
+		except IndexError:
+			pass
+	elif options.extract and options.source == None:
+		print("Extract base.apk & manifest require -s package name")
 
 
+	#extract all split apks
+	if options.extract_all and options.source != None:
+		path_puller()
+		num = 0
+		for apk_path in paths:
+			num += 1
+			device.pull(apk_path, "split-"+options.source+str(num)+".apk")
+			print("APK-"+str(num)+" Path:", apk_path, "Saved as:", "split-"+options.source+str(num)+".apk")
+
+	elif options.extract_all and options.source == None:
+		print("Extract base.apk & manifest require -s package name")
 
 
 except IndexError:
