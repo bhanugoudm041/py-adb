@@ -1,7 +1,11 @@
 from ppadb.client import Client as adb
 from optparse import OptionParser
-from androguard.misc import AnalyzeAPK
+from androguard.core.apk import APK
 from lxml import etree
+from loguru import logger
+
+# Disable complete APK analysis logs on screen
+logger.remove()
 
 
 #options
@@ -28,6 +32,11 @@ parser.add_option("-E", "--des", dest="dest", help="Destination file path to upl
 
 #Extract base apk & AndroidManifest.xml file
 parser.add_option("-e", "--extract", dest="extract", action="store_true", help="Extract base.apk & AndroidManifest.xml file with Package name -s")
+
+
+
+#Run adb shell commands
+parser.add_option("-c", "--cmd", dest="command", help="ADB command to run")
 
 
 (options, args) = parser.parse_args()
@@ -58,6 +67,10 @@ try:
 	#List packages
 	if options.list_packages:
 		print(device.shell("pm list packages"))
+
+	#Run adb command line
+	if options.command != None:
+		print(device.shell(options.command))
 
 
 	#Check installed APK
@@ -122,23 +135,27 @@ try:
 		print("Please provide source(download from) -S and destination(Download to) -E")
 
 
-
+	paths = []
 	#extract Android manifest file & base apk
 	if options.extract and options.source:
-		path = device.shell("pm path " + options.source)
-		if not path.startswith("package:"):
+		paths = (device.shell("pm path " + options.source)).splitlines()
+		if not paths[0].startswith("package:"):
 			print("Package", options.source, "not found")
 		else:
-			apk_path = path.replace("package:", "").strip()
+			apk_path = paths[0].replace("package:", "").strip()
+			print("Base apk path found:", apk_path)
 			device.pull(apk_path, "base-"+options.source+".apk")
-			print("Package downloaded successfully Name:", "base-"+options.source+".apk")
-			apk, d, dx = AnalyzeAPK("base-"+options.source+".apk")
+			print("Base APK downloaded successfully, Name:", "base-"+options.source+".apk")
+			apk = APK("base-"+options.source+".apk")
 			manifest = apk.get_android_manifest_xml()
 			manifest_dom = manifest_str = etree.tostring(manifest, pretty_print=True, encoding='unicode')
 			with open(options.source+"-AndroidManifest.xml", "w") as file:
 				file.write(manifest_dom)
 				file.close()
-			print("Written to file:", options.source+"-AndroidManifest.xml")
-		
+			print("AndroidManifest Written to file:", options.source+"-AndroidManifest.xml")
+
+
+
+
 except IndexError:
 	print("No ADB devices found")
