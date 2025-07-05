@@ -37,6 +37,9 @@ parser.add_option("-x", "--extract-all", dest="extract_all", action="store_true"
 #Run adb shell commands
 parser.add_option("-c", "--cmd", dest="command", help="ADB command to run")
 
+#App analyse
+parser.add_option("-v", "--vulns", dest="vulns", action="store_true", help="Analyze the APK and shows info & Misconfigurations")
+
 
 (options, args) = parser.parse_args()
 
@@ -175,6 +178,78 @@ try:
 
 	elif options.extract_all and options.source == None:
 		print("Extract base.apk & manifest require -s package name")
+
+
+	#Analyse APK data
+	if options.vulns and options.source != None:
+		path_puller()
+		try:
+			apk_path = paths[0]
+			print("Base apk path found:", apk_path)
+			device.pull(apk_path, "base-"+options.source+".apk")
+			print("Base APK downloaded successfully, Name:", "base-"+options.source+".apk")
+			apk = APK("base-"+options.source+".apk")
+
+
+			#package name
+			print(f"[+] APK: {apk.get_package()}")
+
+			# API Levels
+			print(f"[*] Min SDK Version      : {apk.get_min_sdk_version()}")
+			print(f"[*] Target SDK Version   : {apk.get_target_sdk_version()}")
+			print(f"[*] Max SDK Version      : {apk.get_max_sdk_version()}")
+
+
+			#Parsing xml data for misconfigurations
+			manifest_xml = apk.get_android_manifest_xml()
+			app = manifest_xml.find("application")
+			ns = '{http://schemas.android.com/apk/res/android}'
+
+			#debug & backup check
+			debuggable = app.attrib.get(ns + 'debuggable', 'false')
+			allow_backup = app.attrib.get(ns + 'allowBackup', 'false')
+			print(f"\n[*]Debuggable: {debuggable}")
+			print(f"[*]AllowBackup: {allow_backup}")
+
+			permissions_to_check = apk.get_permissions()
+			activities_to_check = apk.get_activities()
+			receivers_to_check = apk.get_receivers()
+			providers_to_check = apk.get_providers()
+			services_to_check = apk.get_services()
+
+			components = ["activity", "provider", "receiver", "service"]
+
+			# Mapping component tag to corresponding list
+			component_map = {
+			    "activity": activities_to_check,
+			    "provider": providers_to_check,
+			    "receiver": receivers_to_check,
+			    "service": services_to_check
+			}
+
+			for component in components:
+			    if app is None:
+			        continue
+			    elements = app.findall(component)
+			    check_list = component_map.get(component, [])
+
+			    print(f"\nChecking <{component}> components:")
+			    for element in elements:
+			        name = element.attrib.get(ns + 'name')
+			        exported = element.attrib.get(ns + 'exported', 'unspecified')
+			        if name in check_list:
+			            print(f"  - {name}: exported={exported}")
+
+			# Permissions
+			manifest = manifest_xml
+			print("\nDeclared Permissions:")
+			for permission in permissions_to_check:
+			    print(f"  - {permission}")
+
+		except IndexError:
+			pass
+	elif options.vulns and options.source == None:
+		print("Analyze the APK and shows info & Misconfigurations require -s package name")	
 
 
 except IndexError:
