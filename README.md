@@ -3,8 +3,8 @@ This tool allows you to do lot of things related to android application pentesti
 
 ## Installation
 ```
-git clone git clone https://github.com/bhanugoudm041/py-adb.git
-cd py-adb
+git clone https://github.com/bhanugoudm041/py-adb.git
+cd vulnscan-adb
 pip3 install -r requirement.txt
 python3 vulnscan-adb.py -h
 ```
