@@ -1,8 +1,8 @@
 # py-adb
 This tool allows you to do lot of things
 ```
-└─$ python3 py-adb.py -h
-Usage: py-adb.py [options]
+└─$ python3 vulnscan-adb.py -h
+Usage: vulnscan-adb.py [options]
 
 Options:
   -h, --help            show this help message and exit
@@ -25,6 +25,10 @@ Options:
   -E DEST, --des=DEST   Destination file path to upload/Download
   -e, --extract         Extract base.apk & AndroidManifest.xml file with
                         Package name -s
-
+  -x, --extract-all     Extract all split apk files with Package name -s
+  -c COMMAND, --cmd=COMMAND
+                        ADB command to run
+  -v, --vulns           Analyze the APK and shows info & Misconfigurations
 ```
-![image](https://github.com/user-attachments/assets/54464bb5-fda1-41fe-9000-42807d11c14f)
+![image](https://github.com/user-attachments/assets/3869090b-7940-43da-8bbb-faebe9846d63)
+
